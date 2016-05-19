@@ -1,18 +1,13 @@
 package edu.iis.mto.integrationtest.repository;
 
-import static edu.iis.mto.integrationtest.repository.PersonBuilder.person;
-import static org.junit.Assert.assertEquals;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import edu.iis.mto.integrationtest.model.Person;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 public class PersonRepositoryIntegrationTest extends IntegrationTest {
 
-	
+	@Autowired
 	private PersonRepository personRepository;
 
 	@Test
