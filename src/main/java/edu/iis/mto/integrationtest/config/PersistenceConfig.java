@@ -2,6 +2,7 @@ package edu.iis.mto.integrationtest.config;
 
 
 import edu.iis.mto.integrationtest.utils.ModeUtils;
+import org.h2.Driver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,17 +22,18 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
-import java.sql.Driver;
-
 
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = {"edu.iis.mto.integrationtest.repository"})
 public class PersistenceConfig {
 
-    private static final String SQL_FOLDER_NAME = "";
-    private static final java.lang.String SQL_SCHEMA_SCRIPT_PATH = "";
-    private static final String DATA_SCRIPT_FILENAME_SUFFIX = "";
+    private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceConfig.class);
+
+    private static final String SQL_SCHEMA_SCRIPT_PATH = "sql/schema-script.sql";
+    private static final String SQL_FOLDER_NAME = "sql/";
+    private static final String DATA_SCRIPT_FILENAME_SUFFIX = "-data-script.sql";
+
     @Value("${database.url}")
     private String databaseUrl;
 
@@ -47,38 +49,12 @@ public class PersistenceConfig {
     @Value("${database.hbm2ddlAuto}")
     private String databaseHbm2ddlAuto;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceConfig.class);
-    private java.lang.String databaseDriverClass;
-
-
-    @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-        LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new
-                LocalContainerEntityManagerFactoryBean();
-        entityManagerFactoryBean.setDataSource(getDataSource());
-        entityManagerFactoryBean.setPackagesToScan("edu.iis.mto.integrationtest.model");
-        entityManagerFactoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-        return entityManagerFactoryBean;
-    }
-
-    @Bean(name = "transactionManager")
-    public PlatformTransactionManager annotationDrivenTransactionManager() {
-        return new JpaTransactionManager();
-    }
-
-    @Bean
-    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
-        return new PersistenceExceptionTranslationPostProcessor();
-    }
-
-
     @Bean(name = "dataSource")
     public DataSource getDataSource() {
         DataSource dataSource = createDataSource();
         DatabasePopulatorUtils.execute(createDatabasePopulator(), dataSource);
         return dataSource;
     }
-
     private DatabasePopulator createDatabasePopulator() {
         ResourceDatabasePopulator databasePopulator = new ResourceDatabasePopulator();
         databasePopulator.setContinueOnError(true);
@@ -88,7 +64,6 @@ public class PersistenceConfig {
                 + DATA_SCRIPT_FILENAME_SUFFIX));
         return databasePopulator;
     }
-
     private SimpleDriverDataSource createDataSource() {
         SimpleDriverDataSource simpleDriverDataSource = new SimpleDriverDataSource();
         Class<? extends Driver> driverClass = getDriverClass();
@@ -98,14 +73,13 @@ public class PersistenceConfig {
         simpleDriverDataSource.setPassword(databasePassword);
         return simpleDriverDataSource;
     }
-
     @SuppressWarnings("unchecked")
     private Class<? extends Driver> getDriverClass() {
         try {
-            Class<?> driverClass = Class.forName(databaseDriverClass);
+            Class<?> driverClass = Class.forName(databaseDriver);
             if (Driver.class.isAssignableFrom(driverClass)) {
                 return (Class<? extends Driver>) driverClass;
-            } else {
+            }else {
                 LOGGER.error("database driver class is not the SQL driver ");
                 return null;
             }
@@ -115,5 +89,22 @@ public class PersistenceConfig {
         }
     }
 
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+        LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new
+                LocalContainerEntityManagerFactoryBean();
+        entityManagerFactoryBean.setDataSource(getDataSource());
+        entityManagerFactoryBean.setPackagesToScan("edu.iis.mto.integrationtest.model");
+        entityManagerFactoryBean .setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        return entityManagerFactoryBean;
+    }
+    @Bean(name = "transactionManager")
+    public PlatformTransactionManager annotationDrivenTransactionManager() {
+        return new JpaTransactionManager();
+    }
+    @Bean
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+        return new PersistenceExceptionTranslationPostProcessor();
+    }
 
 }

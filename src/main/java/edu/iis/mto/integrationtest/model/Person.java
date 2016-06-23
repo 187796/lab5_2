@@ -5,7 +5,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-
 @Entity
 @Table(name = "person")
 public class Person {
@@ -44,9 +43,6 @@ public class Person {
 		this.lastName = lastName;
 	}
 
-
 	public Person() {
-
 	}
-
 }
